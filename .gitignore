@@ -1,0 +1,15 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk.idsig
+
+# 개인 메모
+docs/진행현황.md
+docs/Pleos_Connect_SDK_License.txt
