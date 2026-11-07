@@ -3,7 +3,7 @@ rem 빌드 -> 설치 -> 실행 -> virtual console 포트(8088) 연결
 setlocal
 cd /d "%~dp0.."
 if "%JAVA_HOME%"=="" set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot"
-if "%ANDROID_HOME%"=="" set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+if "%ANDROID_HOME%"=="" set "ANDROID_HOME=C:\Android\Sdk"
 set "ADB=%ANDROID_HOME%\platform-tools\adb.exe"
 
 call gradlew.bat :app:assembleDebug --console=plain --warning-mode=none
