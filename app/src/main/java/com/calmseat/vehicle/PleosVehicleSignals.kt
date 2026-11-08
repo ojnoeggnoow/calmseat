@@ -25,7 +25,8 @@ class PleosVehicleSignals private constructor(
 
     override val sourceLabel: String = "차량 연결"
 
-    override fun snapshots(): Flow<VehicleSnapshot> = combine(
+    // 타입이 다른 플로우 7개라 타입 인자 안 적으면 컴파일러가 못 버팀
+    override fun snapshots(): Flow<VehicleSnapshot> = combine<Any?, VehicleSnapshot>(
         turnSignal(),
         brakePressed(),
         aaos.speedKmh(),

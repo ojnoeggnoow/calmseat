@@ -41,8 +41,10 @@ private fun CalmSeatApp(viewModel: CoachViewModel) {
     } else {
         CoachScreen(
             state = state,
-            onCoach = viewModel::onCoach,
+            onCoach = { prompt -> viewModel.onCoach(prompt) },
             onOpenReport = { showReport = true },
+            showDemoButton = viewModel.canToggleDemo,
+            onToggleDemo = { viewModel.toggleDemo() },
         )
     }
 }
