@@ -12,6 +12,7 @@ import com.calmseat.vehicle.VehicleSnapshot
 import com.calmseat.voice.AndroidSpeaker
 import com.calmseat.voice.PleosSpeaker
 import com.calmseat.voice.Speaker
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,8 +64,10 @@ data class CoachUiState(
 
 class CoachViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val signals: VehicleSignals =
-        PleosVehicleSignals.connectOrNull(app) ?: DemoVehicleSignals()
+    private val realSignals: VehicleSignals? = PleosVehicleSignals.connectOrNull(app)
+    private val demoSignals = DemoVehicleSignals()
+    private var signals: VehicleSignals = realSignals ?: demoSignals
+    private var collectJob: Job? = null
 
     private val speaker: Speaker = PleosSpeaker(app, AndroidSpeaker(app))
 
@@ -77,10 +80,27 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
     private var steeringArmed = true
 
     init {
-        viewModelScope.launch {
+        startCollecting()
+    }
+
+    private fun startCollecting() {
+        collectJob?.cancel()
+        collectJob = viewModelScope.launch {
             signals.snapshots().collect { snapshot -> onSnapshot(snapshot) }
         }
     }
+
+    // 실차 연결 상태에서도 시연용 가짜 주행을 돌릴 수 있게. 정차 중에만 누르게 UI에서 막음
+    fun toggleDemo() {
+        val real: VehicleSignals = realSignals ?: return
+        val next: VehicleSignals = if (signals === demoSignals) real else demoSignals
+        signals = next
+        val label = if (next === demoSignals) "시연" else next.sourceLabel
+        _uiState.update { it.copy(sourceLabel = label) }
+        startCollecting()
+    }
+
+    val canToggleDemo: Boolean get() = realSignals != null
 
     fun onCoach(prompt: CoachPrompt) {
         speaker.speak(prompt.spoken)
@@ -155,7 +175,7 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
-        signals.close()
+        realSignals?.close()
         speaker.shutdown()
     }
 

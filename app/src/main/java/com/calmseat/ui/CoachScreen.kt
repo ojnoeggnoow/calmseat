@@ -36,6 +36,8 @@ fun CoachScreen(
     state: CoachUiState,
     onCoach: (CoachPrompt) -> Unit,
     onOpenReport: () -> Unit,
+    showDemoButton: Boolean = false,
+    onToggleDemo: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -51,7 +53,7 @@ fun CoachScreen(
             CoachButtons(onCoach, modifier = Modifier.weight(1f).fillMaxHeight())
         }
         Spacer(Modifier.height(12.dp))
-        BottomBar(state, onOpenReport)
+        BottomBar(state, onOpenReport, showDemoButton, onToggleDemo)
     }
 }
 
@@ -60,7 +62,7 @@ private fun TopBar(state: CoachUiState) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("차분한 조수석", color = CalmColors.Text, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.width(12.dp))
-        Badge(state.sourceLabel, if (state.sourceLabel == "데모") CalmColors.Warn else CalmColors.Good)
+        Badge(state.sourceLabel, if (state.sourceLabel == "차량 연결") CalmColors.Good else CalmColors.Warn)
         Spacer(Modifier.width(8.dp))
         Badge(state.voiceLabel, CalmColors.TextDim)
         Spacer(Modifier.weight(1f))
@@ -157,7 +159,7 @@ private fun CoachButtons(onCoach: (CoachPrompt) -> Unit, modifier: Modifier = Mo
 }
 
 @Composable
-private fun BottomBar(state: CoachUiState, onOpenReport: () -> Unit) {
+private fun BottomBar(state: CoachUiState, onOpenReport: () -> Unit, showDemoButton: Boolean, onToggleDemo: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             if (state.canOpenReport) "정차 중이에요. 오늘 기록을 볼 수 있어요."
@@ -166,6 +168,12 @@ private fun BottomBar(state: CoachUiState, onOpenReport: () -> Unit) {
             fontSize = 14.sp
         )
         Spacer(Modifier.weight(1f))
+        if (showDemoButton) {
+            OutlinedButton(onClick = onToggleDemo, enabled = state.canOpenReport, shape = RoundedCornerShape(14.dp)) {
+                Text(if (state.sourceLabel == "시연") "시연 끝" else "시연 주행", fontSize = 16.sp)
+            }
+            Spacer(Modifier.width(8.dp))
+        }
         OutlinedButton(onClick = onOpenReport, enabled = state.canOpenReport, shape = RoundedCornerShape(14.dp)) {
             Text("동승 리포트", fontSize = 16.sp)
         }
