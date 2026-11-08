@@ -8,9 +8,17 @@
 
 ## 화면
 
-| 주행 중 | 정차 후 |
+Pleos Connect Emulator v2.1 에서 찍은 화면 (오른쪽이 이 앱)
+
+| 깜빡이 켜고 차선 변경 준비 | 직진 중 |
 |---|---|
-| (스크린샷 추가 예정) | (스크린샷 추가 예정) |
+| ![](docs/screenshots/01_turn_signal.png) | ![](docs/screenshots/02_driving.png) |
+
+| 브레이크 밟는 중 | 정차 중 |
+|---|---|
+| ![](docs/screenshots/03_braking.png) | ![](docs/screenshots/04_parked.png) |
+
+정차 후 리포트: ![](docs/screenshots/05_report.png)
 
 - 왼쪽: 지금 운전자가 뭐 하는지 한 줄 ("왼쪽으로 갈 준비", "속도 줄이는 중" ...)
 - 오른쪽: 동승자 버튼 5개. 누르면 TTS로 운전자한테 전달
