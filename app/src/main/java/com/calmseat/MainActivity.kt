@@ -1,8 +1,10 @@
 package com.calmseat
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,13 +20,25 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: CoachViewModel by viewModels()
 
+    // 속도는 사용자가 허용해야 읽을 수 있음. 허용되면 AaosCarSignals가 알아서 다시 구독함
+    private val askSpeedPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val isCar = packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)
+        if (isCar && checkSelfPermission(CAR_SPEED) != PackageManager.PERMISSION_GRANTED) {
+            askSpeedPermission.launch(CAR_SPEED)
+        }
         setContent {
             CalmSeatTheme {
                 CalmSeatApp(viewModel)
             }
         }
+    }
+
+    private companion object {
+        const val CAR_SPEED = "android.car.permission.CAR_SPEED"
     }
 }
 

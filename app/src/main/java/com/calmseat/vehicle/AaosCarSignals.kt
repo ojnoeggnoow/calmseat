@@ -9,10 +9,12 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 // 속도는 Pleos SDK에 없어서 AAOS 기본 API로 받음. 기어도 여기서 한번 더 받아둠
@@ -72,12 +74,19 @@ class AaosCarSignals(private val context: Context) {
                     trySend(null)
                 }
             }
-            val ok = runCatching {
+            fun register(): Boolean = runCatching {
                 manager.registerCallback(callback, propertyId, CarPropertyManager.SENSOR_RATE_UI)
             }.getOrDefault(false)
-            if (!ok) {
+
+            if (!register()) {
                 Log.w(TAG, "속성 구독 실패: $propertyId")
                 trySend(null)
+                // 속도는 권한을 허용해야 읽힘. 나중에 허용할 수도 있어서 될 때까지 가끔 다시 시도
+                launch {
+                    do {
+                        delay(RETRY_MILLIS)
+                    } while (!register())
+                }
             }
             awaitClose { runCatching { manager.unregisterCallback(callback) } }
         }.distinctUntilChanged()
@@ -85,6 +94,7 @@ class AaosCarSignals(private val context: Context) {
 
     private companion object {
         const val TAG = "AaosCarSignals"
+        const val RETRY_MILLIS = 2_000L
 
         // android.car.VehicleGear 값
         const val GEAR_NEUTRAL = 0x0001

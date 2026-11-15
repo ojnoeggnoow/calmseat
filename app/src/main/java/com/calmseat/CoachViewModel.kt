@@ -58,16 +58,17 @@ data class CoachUiState(
     val lastSpoken: String? = null,
     val events: List<CoachEvent> = emptyList(),
     val maneuvers: List<Maneuver> = emptyList(),
-    val tripStartMillis: Long = System.currentTimeMillis(),
+    val drivingMillis: Long = 0L, // 속도가 0보다 큰 동안만 쌓임
     val maxSpeedKmh: Int = 0,
     val coachCooldown: Boolean = false,
 ) {
+    // 서 있고, 시스템이 주행 제한을 걸지 않았을 때만 리포트를 열 수 있음
     val canOpenReport: Boolean
-        get() = snapshot.isStopped
+        get() = snapshot.isStopped && !snapshot.drivingRestricted
 
-    // 달리는 중엔 글자 키우고 잡다한 건 숨김
+    // 달리는 중엔 글자 키우고 잡다한 건 숨김. 시스템이 주행 제한 상태라고 하면 속도와 상관없이 적용
     val drivingMode: Boolean
-        get() = (snapshot.speedKmh ?: 0) >= 15
+        get() = (snapshot.speedKmh ?: 0) >= 15 || snapshot.drivingRestricted
 }
 
 class CoachViewModel(app: Application) : AndroidViewModel(app) {
@@ -86,6 +87,8 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
 
     private var lastSignalOnMillis = 0L
     private var steeringArmed = true
+    private var lastTickMillis = 0L
+    private var wasMoving = false
 
     init {
         startCollecting()
@@ -135,9 +138,15 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
 
         val newManeuver = detectManeuver(snapshot, now)
 
+        // 직전까지 움직이고 있었으면 그 사이 시간을 주행 시간에 더함
+        val drivenMillis = if (wasMoving && lastTickMillis != 0L) now - lastTickMillis else 0L
+        lastTickMillis = now
+        wasMoving = (snapshot.speedKmh ?: 0) > 0
+
         _uiState.update { state ->
             state.copy(
                 snapshot = snapshot,
+                drivingMillis = state.drivingMillis + drivenMillis,
                 situation = describe(snapshot),
                 voiceLabel = speaker.engineLabel,
                 maneuvers = if (newManeuver != null) state.maneuvers + newManeuver else state.maneuvers,

@@ -30,7 +30,7 @@ import java.util.Locale
 // 정차 중에만 보는 리포트
 @Composable
 fun ReportScreen(state: CoachUiState, onBack: () -> Unit) {
-    val minutes = ((System.currentTimeMillis() - state.tripStartMillis) / 60_000L).toInt()
+    val minutes = (state.drivingMillis / 60_000L).toInt()
     val maneuvers = state.maneuvers
     val signaledRate = if (maneuvers.isEmpty()) null else maneuvers.count { it.signaled } * 100 / maneuvers.size
     val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.KOREA)

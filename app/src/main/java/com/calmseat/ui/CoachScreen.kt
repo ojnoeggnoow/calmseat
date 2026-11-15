@@ -139,7 +139,7 @@ private fun SituationCard(state: CoachUiState, modifier: Modifier = Modifier) {
 private fun SituationVisual(state: CoachUiState, modifier: Modifier = Modifier) {
     val s = state.snapshot
     val speed = s.speedKmh ?: 0
-    val minutes = ((System.currentTimeMillis() - state.tripStartMillis) / 60_000L).toInt()
+    val minutes = (state.drivingMillis / 60_000L).toInt()
     val signaled = state.maneuvers.count { it.signaled }
     val glyphColor = when (state.situation.glyph) {
         "▼", "■" -> CalmColors.Warn
