@@ -47,6 +47,7 @@ data class Maneuver(
 data class Situation(
     val headline: String,
     val detail: String,
+    val glyph: String = "·", // 카드 가운데 크게 보여줄 기호
 )
 
 data class CoachUiState(
@@ -167,25 +168,25 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
         val speedText = s.speedKmh?.let { "${it}km/h" } ?: "속도 모름"
         return when {
             s.gear == Gear.PARK ->
-                Situation("정차 중", "P단 · 안전하게 서 있어요")
+                Situation("정차 중", "P단 · 안전하게 서 있어요", "P")
             s.gear == Gear.REVERSE ->
-                Situation("후진 중", "뒤를 함께 봐 주세요")
+                Situation("후진 중", "뒤를 함께 봐 주세요", "R")
             s.turnSignal == TurnSignal.HAZARD ->
-                Situation("비상등", "잠시 멈추거나 주의를 알리는 중")
+                Situation("비상등", "잠시 멈추거나 주의를 알리는 중", "!")
             s.turnSignal == TurnSignal.LEFT ->
-                Situation("왼쪽으로 갈 준비", "깜빡이 켬 · 왼쪽 뒤를 봐 주면 좋아요 · $speedText")
+                Situation("왼쪽으로 갈 준비", "깜빡이 켬 · 왼쪽 뒤를 봐 주면 좋아요 · $speedText", "←")
             s.turnSignal == TurnSignal.RIGHT ->
-                Situation("오른쪽으로 갈 준비", "깜빡이 켬 · 오른쪽 뒤를 봐 주면 좋아요 · $speedText")
+                Situation("오른쪽으로 갈 준비", "깜빡이 켬 · 오른쪽 뒤를 봐 주면 좋아요 · $speedText", "→")
             s.brakePressed == true && (s.speedKmh ?: 1) > 0 ->
-                Situation("속도 줄이는 중", "브레이크 밟음 · $speedText")
+                Situation("속도 줄이는 중", "브레이크 밟음 · $speedText", "▼")
             s.brakePressed == true ->
-                Situation("멈춰 있음", "브레이크 밟음 · 출발 대기")
+                Situation("멈춰 있음", "브레이크 밟음 · 출발 대기", "■")
             (s.steeringAngleDeg?.let { abs(it) } ?: 0f) >= MANEUVER_ANGLE_DEG ->
-                Situation("핸들 돌리는 중", "차선 변경 또는 회전 · $speedText")
+                Situation("핸들 돌리는 중", "차선 변경 또는 회전 · $speedText", if ((s.steeringAngleDeg ?: 0f) < 0) "↰" else "↱")
             s.speedKmh != null && s.speedKmh > 0 ->
-                Situation("직진 중", "$speedText · 평소처럼 가고 있어요")
+                Situation("직진 중", "$speedText · 평소처럼 가고 있어요", "↑")
             else ->
-                Situation("대기 중", "차량 신호를 기다리고 있어요")
+                Situation("대기 중", "차량 신호를 기다리고 있어요", "·")
         }
     }
 

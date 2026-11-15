@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -109,6 +110,9 @@ private fun SituationCard(state: CoachUiState, modifier: Modifier = Modifier) {
             Text(state.situation.detail, color = CalmColors.Text, fontSize = if (state.drivingMode) 24.sp else 18.sp)
         }
 
+        // 가운데: 상황 기호 크게 + 속도 막대 + 오늘 요약. 글자 읽기 전에 모양으로 먼저 알게
+        SituationVisual(state, modifier = Modifier.weight(1f).fillMaxWidth())
+
         // 주행 중엔 숫자 칩 숨김. 동승자가 읽을 건 큰 글자 한 줄이면 됨
         if (!state.drivingMode) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Chip("속도", s.speedKmh?.toString() ?: "–")
@@ -128,6 +132,71 @@ private fun SituationCard(state: CoachUiState, modifier: Modifier = Modifier) {
                 Text("🔈 " + state.lastSpoken, color = CalmColors.Text, fontSize = if (state.drivingMode) 20.sp else 16.sp)
             }
         }
+    }
+}
+
+@Composable
+private fun SituationVisual(state: CoachUiState, modifier: Modifier = Modifier) {
+    val s = state.snapshot
+    val speed = s.speedKmh ?: 0
+    val minutes = ((System.currentTimeMillis() - state.tripStartMillis) / 60_000L).toInt()
+    val signaled = state.maneuvers.count { it.signaled }
+    val glyphColor = when (state.situation.glyph) {
+        "▼", "■" -> CalmColors.Warn
+        "P" -> CalmColors.Good
+        else -> CalmColors.Accent
+    }
+    Column(
+        modifier = modifier.padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(if (state.drivingMode) 230.dp else 190.dp)
+                .background(glyphColor.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+                .padding(6.dp)
+                .background(CalmColors.SurfaceHigh, RoundedCornerShape(999.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                state.situation.glyph,
+                color = glyphColor,
+                fontSize = if (state.drivingMode) 120.sp else 96.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = if (state.drivingMode) 130.sp else 104.sp
+            )
+        }
+        Spacer(Modifier.height(20.dp))
+
+        // 속도 막대. 0~120 기준
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text("$speed", color = CalmColors.Text, fontSize = if (state.drivingMode) 40.sp else 30.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(6.dp))
+            Text("km/h", color = CalmColors.TextDim, fontSize = 16.sp, modifier = Modifier.padding(bottom = 6.dp))
+        }
+        Spacer(Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(10.dp)
+                .background(CalmColors.SurfaceHigh, RoundedCornerShape(999.dp))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth((speed / 120f).coerceIn(0.02f, 1f))
+                    .height(10.dp)
+                    .background(if (speed >= 80) CalmColors.Warn else CalmColors.Accent, RoundedCornerShape(999.dp))
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+
+        // 오늘 지금까지. 리포트랑 이어지는 숫자
+        Text(
+            "오늘 · 주행 ${minutes}분 · 동승자 도움 ${state.events.size}회 · 깜빡이 ${signaled}/${state.maneuvers.size}",
+            color = CalmColors.TextDim,
+            fontSize = 14.sp
+        )
     }
 }
 
