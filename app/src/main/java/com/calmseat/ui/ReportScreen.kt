@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,29 +57,65 @@ fun ReportScreen(state: CoachUiState, onBack: () -> Unit) {
         }
         Spacer(Modifier.height(16.dp))
 
-        Text("동승자가 도와준 순간", color = CalmColors.TextDim, fontSize = 14.sp)
-        Spacer(Modifier.height(8.dp))
-        if (state.events.isEmpty()) {
-            Text("아직 버튼을 누른 적이 없어요. 초보가 혼자서도 잘 달렸다는 뜻이에요.", color = CalmColors.Text, fontSize = 16.sp)
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(state.events.asReversed()) { event ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(CalmColors.Surface, RoundedCornerShape(12.dp))
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(timeFormat.format(Date(event.atMillis)), color = CalmColors.TextDim, fontSize = 14.sp)
-                        Spacer(Modifier.width(16.dp))
-                        Text(event.prompt.label, color = CalmColors.Accent, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                        Spacer(Modifier.weight(1f))
-                        Text(event.speedKmh?.let { "${it}km/h" } ?: "", color = CalmColors.TextDim, fontSize = 14.sp)
+        // 왼쪽: 동승자가 누른 버튼. 오른쪽: 깜빡이 안 켜고 꺾은 순간 (주행 중엔 말 안 하고 여기서만 보여줌)
+        val missed = maneuvers.filter { !it.signaled }
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.weight(1f)) {
+            Column(Modifier.weight(1f)) {
+                Text("동승자가 도와준 순간", color = CalmColors.TextDim, fontSize = 14.sp)
+                Spacer(Modifier.height(8.dp))
+                if (state.events.isEmpty()) {
+                    Text("아직 버튼을 누른 적이 없어요. 초보가 혼자서도 잘 달렸다는 뜻이에요.", color = CalmColors.Text, fontSize = 16.sp)
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(state.events.asReversed()) { event ->
+                            ReportRow(
+                                time = timeFormat.format(Date(event.atMillis)),
+                                title = event.prompt.label,
+                                titleColor = CalmColors.Accent,
+                                trailing = event.speedKmh?.let { "${it}km/h" } ?: "",
+                            )
+                        }
+                    }
+                }
+            }
+            Column(Modifier.weight(1f)) {
+                Text("깜빡이 없이 꺾은 순간", color = CalmColors.TextDim, fontSize = 14.sp)
+                Spacer(Modifier.height(8.dp))
+                if (maneuvers.isEmpty()) {
+                    Text("차선 변경이나 회전이 없었어요.", color = CalmColors.Text, fontSize = 16.sp)
+                } else if (missed.isEmpty()) {
+                    Text("전부 깜빡이를 켰어요. 오늘은 칭찬만 하면 돼요.", color = CalmColors.Text, fontSize = 16.sp)
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(missed.asReversed()) { m ->
+                            ReportRow(
+                                time = timeFormat.format(Date(m.atMillis)),
+                                title = "${m.direction}으로 꺾음 · 깜빡이 없음",
+                                titleColor = CalmColors.Warn,
+                                trailing = m.speedKmh?.let { "${it}km/h" } ?: "",
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ReportRow(time: String, title: String, titleColor: Color, trailing: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CalmColors.Surface, RoundedCornerShape(12.dp))
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(time, color = CalmColors.TextDim, fontSize = 14.sp)
+        Spacer(Modifier.width(16.dp))
+        Text(title, color = titleColor, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Spacer(Modifier.weight(1f))
+        Text(trailing, color = CalmColors.TextDim, fontSize = 14.sp)
     }
 }
 

@@ -13,6 +13,7 @@ import com.calmseat.voice.AndroidSpeaker
 import com.calmseat.voice.PleosSpeaker
 import com.calmseat.voice.Speaker
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,11 +36,12 @@ data class CoachEvent(
     val speedKmh: Int?,
 )
 
-// 핸들 크게 꺾은 거 한 번. 깜빡이 켰었는지 같이 저장
+// 핸들 크게 꺾은 거 한 번. 깜빡이 켰었는지, 어느 쪽인지 같이 저장
 data class Maneuver(
     val atMillis: Long,
     val speedKmh: Int?,
     val signaled: Boolean,
+    val direction: String,
 )
 
 data class Situation(
@@ -57,9 +59,14 @@ data class CoachUiState(
     val maneuvers: List<Maneuver> = emptyList(),
     val tripStartMillis: Long = System.currentTimeMillis(),
     val maxSpeedKmh: Int = 0,
+    val coachCooldown: Boolean = false,
 ) {
     val canOpenReport: Boolean
         get() = snapshot.isStopped
+
+    // 달리는 중엔 글자 키우고 잡다한 건 숨김
+    val drivingMode: Boolean
+        get() = (snapshot.speedKmh ?: 0) >= 15
 }
 
 class CoachViewModel(app: Application) : AndroidViewModel(app) {
@@ -103,6 +110,8 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
     val canToggleDemo: Boolean get() = realSignals != null
 
     fun onCoach(prompt: CoachPrompt) {
+        // 연타하면 말이 겹쳐서 운전자가 더 헷갈림. 말 끝날 때까지 잠깐 막음
+        if (_uiState.value.coachCooldown) return
         speaker.speak(prompt.spoken)
         val now = System.currentTimeMillis()
         _uiState.update { state ->
@@ -110,7 +119,12 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
                 lastSpoken = prompt.spoken,
                 voiceLabel = speaker.engineLabel,
                 events = state.events + CoachEvent(now, prompt, state.snapshot.speedKmh),
+                coachCooldown = true,
             )
+        }
+        viewModelScope.launch {
+            delay(COACH_COOLDOWN_MILLIS)
+            _uiState.update { it.copy(coachCooldown = false) }
         }
     }
 
@@ -144,7 +158,8 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
         if (!steeringArmed) return null
         steeringArmed = false
         val signaled = snapshot.turnSignal != TurnSignal.OFF || now - lastSignalOnMillis <= SIGNAL_GRACE_MILLIS
-        return Maneuver(now, speed, signaled)
+        val direction = if (angle < 0) "왼쪽" else "오른쪽"
+        return Maneuver(now, speed, signaled, direction)
     }
 
     // 동승자한테 보여줄 한 줄. 위에서부터 먼저 걸리는 걸로
@@ -184,5 +199,6 @@ class CoachViewModel(app: Application) : AndroidViewModel(app) {
         const val MANEUVER_RESET_DEG = 15f
         const val MANEUVER_MIN_SPEED_KMH = 15
         const val SIGNAL_GRACE_MILLIS = 4_000L
+        const val COACH_COOLDOWN_MILLIS = 2_500L
     }
 }

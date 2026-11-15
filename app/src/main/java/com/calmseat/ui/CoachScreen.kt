@@ -50,7 +50,7 @@ fun CoachScreen(
         Row(modifier = Modifier.weight(1f)) {
             SituationCard(state, modifier = Modifier.weight(1.3f).fillMaxHeight())
             Spacer(Modifier.width(16.dp))
-            CoachButtons(onCoach, modifier = Modifier.weight(1f).fillMaxHeight())
+            CoachButtons(onCoach, enabled = !state.coachCooldown, modifier = Modifier.weight(1f).fillMaxHeight())
         }
         Spacer(Modifier.height(12.dp))
         BottomBar(state, onOpenReport, showDemoButton, onToggleDemo)
@@ -65,6 +65,10 @@ private fun TopBar(state: CoachUiState) {
         Badge(state.sourceLabel, if (state.sourceLabel == "차량 연결") CalmColors.Good else CalmColors.Warn)
         Spacer(Modifier.width(8.dp))
         Badge(state.voiceLabel, CalmColors.TextDim)
+        if (state.drivingMode) {
+            Spacer(Modifier.width(8.dp))
+            Badge("주행 중 · 간단히", CalmColors.Accent)
+        }
         Spacer(Modifier.weight(1f))
         Text("동승자용", color = CalmColors.TextDim, fontSize = 14.sp)
     }
@@ -97,15 +101,16 @@ private fun SituationCard(state: CoachUiState, modifier: Modifier = Modifier) {
             Text(
                 state.situation.headline,
                 color = CalmColors.Accent,
-                fontSize = 44.sp,
+                fontSize = if (state.drivingMode) 60.sp else 44.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 50.sp
+                lineHeight = if (state.drivingMode) 68.sp else 50.sp
             )
             Spacer(Modifier.height(8.dp))
-            Text(state.situation.detail, color = CalmColors.Text, fontSize = 18.sp)
+            Text(state.situation.detail, color = CalmColors.Text, fontSize = if (state.drivingMode) 24.sp else 18.sp)
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        // 주행 중엔 숫자 칩 숨김. 동승자가 읽을 건 큰 글자 한 줄이면 됨
+        if (!state.drivingMode) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Chip("속도", s.speedKmh?.toString() ?: "–")
             Chip("기어", s.gear.toLabel())
             Chip("깜빡이", s.turnSignal.toLabel(), highlight = s.turnSignal != TurnSignal.OFF)
@@ -120,7 +125,7 @@ private fun SituationCard(state: CoachUiState, modifier: Modifier = Modifier) {
                     .background(CalmColors.SurfaceHigh, RoundedCornerShape(14.dp))
                     .padding(14.dp)
             ) {
-                Text("🔈 " + state.lastSpoken, color = CalmColors.Text, fontSize = 16.sp)
+                Text("🔈 " + state.lastSpoken, color = CalmColors.Text, fontSize = if (state.drivingMode) 20.sp else 16.sp)
             }
         }
     }
@@ -139,17 +144,20 @@ private fun Chip(label: String, value: String, highlight: Boolean = false) {
 }
 
 @Composable
-private fun CoachButtons(onCoach: (CoachPrompt) -> Unit, modifier: Modifier = Modifier) {
+private fun CoachButtons(onCoach: (CoachPrompt) -> Unit, enabled: Boolean, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("차가 대신 말해 줘요", color = CalmColors.TextDim, fontSize = 14.sp)
+        Text(if (enabled) "차가 대신 말해 줘요" else "말하는 중…", color = CalmColors.TextDim, fontSize = 14.sp)
         CoachPrompt.entries.forEach { prompt ->
             Button(
                 onClick = { onCoach(prompt) },
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (prompt == CoachPrompt.DOING_GREAT) CalmColors.Good else CalmColors.SurfaceHigh,
                     contentColor = if (prompt == CoachPrompt.DOING_GREAT) CalmColors.Background else CalmColors.Text,
+                    disabledContainerColor = CalmColors.Surface,
+                    disabledContentColor = CalmColors.TextDim,
                 )
             ) {
                 Text(prompt.label, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
@@ -163,6 +171,7 @@ private fun BottomBar(state: CoachUiState, onOpenReport: () -> Unit, showDemoBut
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             if (state.canOpenReport) "정차 중이에요. 오늘 기록을 볼 수 있어요."
+            else if (state.drivingMode) "주행 중이라 큰 글자와 버튼만 보여요. 지적은 내려서 리포트로."
             else "주행 중에는 상황과 버튼만 보여요.",
             color = CalmColors.TextDim,
             fontSize = 14.sp
