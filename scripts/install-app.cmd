@@ -1,5 +1,5 @@
 @echo off
-rem ë¹Œë“œ -> ì„¤ì¹˜ -> ì‹¤í–‰ -> virtual console í¬íŠ¸(8088) ì—°ê²°
+rem ºôµå -> ¼³Ä¡ -> ½ÇÇà -> virtual console Æ÷Æ®(8088) ¿¬°á
 setlocal
 cd /d "%~dp0.."
 if "%JAVA_HOME%"=="" set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.21.9-hotspot"

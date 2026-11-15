@@ -1,6 +1,6 @@
 @echo off
-rem Л≈░К╝╛К═┬Л²╢М└╟ Л╪°Й╦╟ (AVD: Pleos_Connect_v2_1)
-rem Й╡╫К║°Л≈░ М∙°Й╦─ Л·┬Л°╪К╘╢ Л≈░К╝╛К═┬Л²╢М└╟Й╟─ Лё╫Л√╢Л└° Л═└К╤─ C:\Android К╟▒Л°╪К║° Л·║Л∙└К▒═
+rem ©║╧д╥╧юлем дя╠Б (AVD: Pleos_Connect_v2_1)
+rem ╟Ф╥н©║ гя╠ш южю╦╦И ©║╧д╥╧юлем╟║ ав╬Н╪╜ юЭ╨н C:\Android ╧ью╦╥н юБ╬ф╣р
 setlocal
 set "ANDROID_HOME=C:\Android\Sdk"
 set "ANDROID_SDK_ROOT=C:\Android\Sdk"

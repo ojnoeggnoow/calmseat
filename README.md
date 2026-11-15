@@ -26,23 +26,27 @@ Pleos Connect Emulator v2.1 에서 찍은 화면 (오른쪽이 이 앱)
 
 ## 실행
 
-APK: `apk/` (제출 때 추가)
+APK: [`apk/CalmSeat_차분한조수석_release.apk`](apk/CalmSeat_차분한조수석_release.apk) (release 서명본)
 
 ```
-adb install apk/xxx_release.apk
+adb install apk/CalmSeat_차분한조수석_release.apk
 ```
+
+설치 후 런처에서 "차분한 조수석" 실행. 따로 설정할 건 없고, 차에 연결되면 자동으로 차량 신호를 받고 아니면 데모 모드로 돈다.
 
 소스 빌드:
 
 ```
 gradlew.bat :app:assembleDebug
+gradlew.bat :app:assembleRelease   # keystore.properties 없으면 debug 키로 서명됨
 ```
 
 JDK 17, Android SDK 35 필요. Pleos SDK는 settings.gradle.kts에 적힌 maven 저장소에서 받아진다.
 
 ## 테스트 환경
 
-- Pleos Connect Emulator v2.1 (API 34)에서 실제 신호로 동작
+- Pleos Connect Emulator v2.1.0 (Android 14 / API 34, android-automotive x86_64), 화면 2560×1440 가로형, Cold boot, RAM 4GB
+- 위 에뮬레이터에서 실제 신호(기어, 조향각, 깜빡이, 브레이크)로 동작 확인, TTS는 Pleos 음성으로 출력
 - 그 외 안드로이드 기기/에뮬레이터(API 28+)에서는 데모 모드로 돌아감 (가상 주행 시나리오 반복, 화면에 "데모" 표시)
 
 에뮬레이터에서 `adb forward tcp:8088 tcp:8088` 하고 http://127.0.0.1:8088/ 열면 Virtual Console에서 깜빡이/브레이크/기어/핸들 값을 바꿀 수 있다.

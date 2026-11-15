@@ -1,6 +1,7 @@
 *.iml
 .gradle/
 /local.properties
+/keystore.properties
 /.idea/
 .DS_Store
 /build
@@ -15,5 +16,7 @@ docs/진행현황.md
 docs/문의초안.md
 docs/기획서_초안.md
 docs/screenshots/raw_*.png
-docs/video/
+docs/video/*
+!docs/video/demo.mp4
 docs/Pleos_Connect_SDK_License.txt
+docs/접수양식*
