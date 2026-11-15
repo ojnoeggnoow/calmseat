@@ -20,3 +20,7 @@ docs/video/*
 !docs/video/demo.mp4
 docs/Pleos_Connect_SDK_License.txt
 docs/접수양식*
+
+# 빌드 도구 로그, 개인 서류
+.kotlin/
+*.docx
