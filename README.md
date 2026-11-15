@@ -32,10 +32,10 @@ Pleos Connect Emulator v2.1 에서 찍은 화면 (오른쪽이 이 앱)
 
 ## 실행
 
-APK: [`apk/CalmSeat_차분한조수석_release.apk`](apk/CalmSeat_차분한조수석_release.apk) (release 서명본)
+APK: [`apk/어어금지_차분한조수석_release.apk`](apk/어어금지_차분한조수석_release.apk) (release 서명본)
 
 ```
-adb install apk/CalmSeat_차분한조수석_release.apk
+adb install apk/어어금지_차분한조수석_release.apk
 ```
 
 설치 후 런처에서 "차분한 조수석" 실행. 처음 켜면 속도 권한을 물어보는데 허용하면 된다. 차에 연결되면 자동으로 차량 신호를 받고 아니면 데모 모드로 돈다.
